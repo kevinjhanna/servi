@@ -1,0 +1,1 @@
+- Allow to iterate over form errors to programatically show all errors.

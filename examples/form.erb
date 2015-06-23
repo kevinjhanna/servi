@@ -1,0 +1,31 @@
+<form method='post' action='/<%= action %>'>
+  <% unless form.errors.empty? %>
+    <b>Erorrs:</b>:
+    <ul>
+      <% if form.errors.on(:title, :not_present) %>
+        <li>You forgot the title!</li>
+      <% end %>
+
+      <% if form.errors.on(:body, :not_present) %>
+        <li>You forgot the body!</li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <label>
+    Title <br>
+    <input type='text' name='title' value='<%= form.input["title"] %>'>
+  </label>
+  <br>
+  <br>
+  <label>
+    Body <br>
+  <input type='text' name='body' value='<%= form.input["body"] %>'>
+  </label>
+
+  <br>
+  <br>
+  <button type="submit">
+    Save
+  </button>
+</form>
