@@ -2,7 +2,7 @@ require "cuba"
 require "cuba/render"
 require "erb"
 
-require File.expand_path("../lib/service", File.dirname(__FILE__))
+require File.expand_path("../lib/servi", File.dirname(__FILE__))
 
 module Services
   class Movie
@@ -11,7 +11,7 @@ end
 
 Movie = Struct.new(:id, :title, :body)
 
-class MovieValidation < Service::Input
+class MovieValidation < Servi::Input
   attr_accessor :title
   attr_accessor :body
 
@@ -21,7 +21,7 @@ class MovieValidation < Service::Input
   end
 end
 
-class Services::Movie::Create < Service
+class Services::Movie::Create < Servi
   def build(input)
     # You would do
     # movie = Movie.create(input)
@@ -34,7 +34,7 @@ class Services::Movie::Create < Service
   end
 end
 
-class Services::Movie::Edit < Service
+class Services::Movie::Edit < Servi
   attr_accessor :movie
 
   def build(input)
@@ -58,7 +58,7 @@ Cuba.define do
   end
 
   on get, "new" do
-    form = Service.empty_result
+    form = Servi.empty_result
     res.write partial("form", form: form, action: "create")
   end
 
@@ -77,7 +77,7 @@ Cuba.define do
     # Fetch movie from DB
     movie = Movie.new(id, "The Hobbit", "Get that ring")
 
-    form = Service.empty_result
+    form = Servi.empty_result
     form.input["title"] = movie.title
     form.input["body"] = movie.body
 

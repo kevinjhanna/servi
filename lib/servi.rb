@@ -1,6 +1,6 @@
 require "scrivener"
 
-class Service
+class Servi
   attr :input
 
   def self.call(user_input, trusted_input)
@@ -14,7 +14,7 @@ class Service
   end
 
   def self.empty_result
-    Service::Result.new(:empty, {}, {}, Service::Errors.new)
+    Servi::Result.new(:empty, {}, {}, Servi::Errors.new)
   end
 
   def initialize(input = {})

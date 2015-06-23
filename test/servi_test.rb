@@ -1,8 +1,8 @@
-require File.expand_path("../lib/service", File.dirname(__FILE__))
+require File.expand_path("../lib/servi", File.dirname(__FILE__))
 
 Post = Struct.new(:title, :content, :category)
 
-class Post::Create < Service
+class Post::Create < Servi
   attr_accessor :category
 
   class AdditionalValidation < ::Scrivener
@@ -38,7 +38,7 @@ class Post::Create < Service
     success(post: post)
   end
 
-  class Input < Service::Input
+  class Input < Servi::Input
     attr_accessor :title
     attr_accessor :content
 
@@ -114,7 +114,7 @@ end
 Comment = Struct.new(:content, :user_id)
 RegisteredUser = Struct.new(:id)
 
-class Comment::Delete < Service
+class Comment::Delete < Servi
   attr_accessor :user
 
   def build(attrs)
@@ -125,7 +125,7 @@ class Comment::Delete < Service
     { user: user }
   end
 
-  class Input < Service::Input
+  class Input < Servi::Input
     attr_accessor :comment
 
     def validate
