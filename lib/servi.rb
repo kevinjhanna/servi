@@ -22,7 +22,11 @@ class Servi
   end
 
   def commit
-    form = self.class.const_get(:Input).new(input, self.validation_context)
+    form = self.class.const_get(:Input).new(input)
+
+    if form.respond_to?(:context)
+      form.context(self.validation_context)
+    end
 
     if form.valid?
       build(form.attributes)
@@ -68,10 +72,9 @@ class Servi
     end
   end
 
-  class Input < ::Scrivener
-    def initialize(atts, context)
+  module InputWithValidationContext
+    def context(context)
       @context = context
-      super(atts)
     end
   end
 
