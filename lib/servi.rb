@@ -43,7 +43,7 @@ class Servi
   protected :error
 
   def success(output = {})
-    Result.new(:success, @input, output)
+    Result.new(:success, @input, output, Errors.new)
   end
   protected :success
 
@@ -52,7 +52,7 @@ class Servi
     attr :output
     attr :errors
 
-    def initialize(status, input, output, errors = Hash.new { |hash, key| hash[key] = [] })
+    def initialize(status, input, output, errors)
       @status = status
       @input = input
       @output = output
@@ -76,7 +76,7 @@ class Servi
   end
 
   class Errors
-    def initialize(errors={})
+    def initialize(errors=Hash.new { |hash, key| hash[key] = [] })
       @errors = errors
     end
 
