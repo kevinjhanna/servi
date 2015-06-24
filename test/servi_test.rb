@@ -38,7 +38,7 @@ class Post::Create < Servi
     success(post: post)
   end
 
-  class Input < Servi::Input
+  class Input < Scrivener
     attr_accessor :title
     attr_accessor :content
 
@@ -125,7 +125,9 @@ class Comment::Delete < Servi
     { user: user }
   end
 
-  class Input < Servi::Input
+  class Input < Scrivener
+    include Servi::InputWithValidationContext
+
     attr_accessor :comment
 
     def validate
