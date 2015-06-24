@@ -154,3 +154,20 @@ test "validation_context" do
   assert result.ok?
   assert result[:comment].nil?
 end
+
+test "consistency of error methods" do
+  # When it fails
+  result = Post::Create.call({}, {})
+  assert !result.ok?
+  assert result.errors.on(:title, :not_present)
+
+  # When it succeeds
+  user_input = {
+    "title" => "foo",
+    "content" => "bar",
+  }
+
+  result = Post::Create.call(user_input, { category: "arts" })
+  assert result.ok?
+  assert !result.errors.on(:title, :not_present)
+end
