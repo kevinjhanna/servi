@@ -1,51 +1,60 @@
 require "cuba"
 require "cuba/render"
 require "erb"
+require "ostruct"
 
-require File.expand_path("../lib/servi", File.dirname(__FILE__))
+require_relative "../lib/servi"
 
 module Services
   class Movie
   end
 end
 
-Movie = Struct.new(:id, :title, :body)
+Movie = OpenStruct
 
-class MovieValidation < Servi::Input
-  attr_accessor :title
-  attr_accessor :body
+class Services::Movie::Create < Servi
+  def build(attrs)
+    # You would do
+    # movie = Movie.create(attrs)
+
+    movie = Movie.new(attrs.merge(id: 1))
+    success(movie: movie)
+  end
 
   def validate
     assert_present :title
     assert_present :body
   end
-end
 
-class Services::Movie::Create < Servi
-  def build(input)
-    # You would do
-    # movie = Movie.create(input)
-
-    movie = Movie.new(1, input[:title], input[:body])
-    success(movie: movie)
-  end
-
-  class Input < MovieValidation
+  def clean
+    {
+      title: @params["title"],
+      body: @params["title"]
+    }
   end
 end
 
 class Services::Movie::Edit < Servi
-  attr_accessor :movie
-
-  def build(input)
+  def build(attrs)
     # You would do
-    # movie = movie.update(input)
-    movie = self.movie
+    # movie = movie.update(attrs)
+    movie = attrs[:movie]
 
     success(movie: movie)
   end
 
-  class Input < MovieValidation
+  def validate
+    assert_present :movie
+    assert_present :title
+    assert_present :body
+  end
+
+  def clean
+    {
+      movie: @params["movie"],
+      title: @params["title"],
+      body: @params["title"]
+    }
   end
 end
 
@@ -58,8 +67,8 @@ Cuba.define do
   end
 
   on get, "new" do
-    form = Servi.empty_result
-    res.write partial("form", form: form, action: "create")
+    result = Servi::Result.unbounded
+    res.write partial("form", form: result, action: "create")
   end
 
   on post, "create" do
@@ -75,18 +84,18 @@ Cuba.define do
 
   on get, ":id/edit" do |id|
     # Fetch movie from DB
-    movie = Movie.new(id, "The Hobbit", "Get that ring")
+    movie = Movie.new(id: id, title: "The Hobbit", body: "Get that ring")
 
-    form = Servi.empty_result
-    form.input["title"] = movie.title
-    form.input["body"] = movie.body
+    result = Servi::Result.unbounded
+    result.params["title"] = movie.title
+    result.params["body"] = movie.body
 
-    res.write partial("form", form: form, action: "#{id}/edit")
+    res.write partial("form", form: result, action: "#{id}/edit")
   end
 
   on post, ":id/edit" do |id|
     # Fetch movie from DB
-    movie = Movie.new(id, "The Hobbit", "Get that ring")
+    movie = Movie.new(id: id, title: "The Hobbit", body: "Get that ring")
 
     result = Services::Movie::Edit.call(req.POST, { movie: movie })
 

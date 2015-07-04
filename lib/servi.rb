@@ -1,62 +1,59 @@
-require "scrivener"
+require_relative "servi/validations"
 
 class Servi
-  attr :input
+  include Servi::Validations
 
-  def self.call(user_input, trusted_input)
-    service = new(user_input)
+  attr_reader :errors
 
-    trusted_input.each do |key, value|
-      service.send("#{key}=", value)
+  def self.call(params, trusted = {})
+    merged = params.dup
+
+    trusted.each do |key, value|
+      merged[key.to_s] = value
     end
 
-    service.commit
-  end
+    service = new(merged)
 
-  def self.empty_result
-    Servi::Result.new(:empty, {}, {}, Servi::Errors.new)
-  end
+    service.validate
 
-  def initialize(input = {})
-    @input = input
-  end
-
-  def commit
-    form = self.class.const_get(:Input).new(input, self.validation_context)
-
-    if form.valid?
-      build(form.attributes)
+    if service.errors.empty?
+      service.build(service.clean)
     else
-      error(form.errors)
+      service.error(service.errors)
     end
   end
 
-  # Things you may need when validating the input
-  def validation_context
-    {}
+  def initialize(params)
+    @params = params
+    @errors = Hash.new { |hash, key| hash[key] = [] }
   end
-  protected :validation_context
+
+  def get(attr)
+    @params[attr.to_s]
+  end
 
   def error(errors)
-    Result.new(:error, @input, {}, Errors.new(errors))
+    Result.new(:error, @params, {}, errors)
   end
-  protected :error
 
   def success(output = {})
-    Result.new(:success, @input, output)
+    Result.new(:success, @params, output)
   end
-  protected :success
 
   class Result
-    attr :input
     attr :output
+    attr :params
     attr :errors
 
-    def initialize(status, input, output, errors = Hash.new { |hash, key| hash[key] = [] })
+    def initialize(status, params, output, errors = Hash.new { |hash, key| hash[key] = [] })
       @status = status
-      @input = input
+      @params = params
       @output = output
       @errors = errors
+    end
+
+    def self.unbounded
+      Result.new(:unbound, {}, {})
     end
 
     def ok?
@@ -65,47 +62,6 @@ class Servi
 
     def [](key)
       @output.fetch(key)
-    end
-  end
-
-  class Input < ::Scrivener
-    def initialize(atts, context)
-      @context = context
-      super(atts)
-    end
-  end
-
-  class Errors
-    def initialize(errors={})
-      @errors = errors
-    end
-
-    def empty?
-      @errors.empty?
-    end
-
-    def on(att, name)
-      errors = lookup(att)
-      error = errors && errors.include?(name)
-
-      if block_given?
-        yield if error
-      else
-        error
-      end
-    end
-
-    def any?(att)
-      errors = lookup(att)
-      errors && errors.any?
-    end
-
-    def lookup(atts)
-      Array(atts).inject(@errors) { |err, att| err && !err[att].empty? && err[att] }
-    end
-
-    def [](att)
-      @errors[att]
     end
   end
 end
