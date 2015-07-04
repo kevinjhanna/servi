@@ -4,6 +4,7 @@ require "erb"
 require "ostruct"
 
 require_relative "../lib/servi"
+require_relative "../lib/servi/form"
 
 module Services
   class Movie
@@ -58,6 +59,17 @@ class Services::Movie::Edit < Servi
   end
 end
 
+module Forms
+  module Movie
+    class Edit < Servi::Form
+      def fill(movie:)
+        params["title"] = movie.title
+        params["body"] = movie.body
+      end
+    end
+  end
+end
+
 Cuba.plugin Cuba::Render
 Cuba.settings[:render][:views] = "./examples/"
 
@@ -67,8 +79,8 @@ Cuba.define do
   end
 
   on get, "new" do
-    result = Servi::Result.unbounded
-    res.write partial("form", form: result, action: "create")
+    form = Servi::Form.empty
+    res.write partial("form", form: form, action: "create")
   end
 
   on post, "create" do
@@ -78,7 +90,8 @@ Cuba.define do
       movie = result[:movie]
       res.write("Movie created: #{movie.title}")
     else
-      res.write partial("form", form: result, action: "create")
+      form = Servi::Form.new(result)
+      res.write partial("form", form: form, action: "create")
     end
   end
 
@@ -86,11 +99,9 @@ Cuba.define do
     # Fetch movie from DB
     movie = Movie.new(id: id, title: "The Hobbit", body: "Get that ring")
 
-    result = Servi::Result.unbounded
-    result.params["title"] = movie.title
-    result.params["body"] = movie.body
+    form = Forms::Movie::Edit.from(movie: movie)
 
-    res.write partial("form", form: result, action: "#{id}/edit")
+    res.write partial("form", form: form, action: "#{id}/edit")
   end
 
   on post, ":id/edit" do |id|
@@ -103,7 +114,8 @@ Cuba.define do
       movie = result[:movie]
       res.write("Movie edited: #{movie.title}")
     else
-      res.write partial("form", form: result, action: "#{id}/edit")
+      form = Servi::Form.new(result)
+      res.write partial("form", form: form, action: "#{id}/edit")
     end
   end
 end

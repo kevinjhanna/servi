@@ -52,10 +52,6 @@ class Servi
       @errors = errors
     end
 
-    def self.unbounded
-      Result.new(:unbound, {}, {})
-    end
-
     def ok?
       @status == :success
     end
